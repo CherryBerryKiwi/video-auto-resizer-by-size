@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 if "%~1"=="" (
-    echo Keo tha video vao file BAT nay.
+    echo Drag and drop a video file onto this BAT file.
     pause
     exit /b
 )
@@ -11,21 +11,23 @@ set "input=%~1"
 set "folder=%~dp1"
 set "name=%~n1"
 
-set /p target="Nhap dung luong mong muon (MB): "
+set /p target="Enter target file size (MB): "
 
 echo.
-echo Dang lay thoi luong video...
+echo Reading video duration...
 
 for /f "delims=" %%a in ('ffprobe -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "%input%"') do set duration=%%a
 
 if "%duration%"=="" (
-    echo Khong doc duoc thoi luong video.
+    echo Cannot read video duration.
     pause
     exit /b
 )
 
-rem Tinh bitrate:
-rem MB * 8192 / giay - audio 128kbps
+rem Calculate bitrate:
+rem Total bitrate = target MB * 8192 / seconds
+rem Subtract audio bitrate (128 kbps)
+
 for /f "tokens=1 delims=." %%a in ("!duration!") do set seconds=%%a
 
 set /a total_kbps=(target*8192)/seconds
@@ -36,7 +38,7 @@ if !video_kbps! LSS 100 (
 )
 
 echo.
-echo Thoi luong: !seconds! giay
+echo Duration: !seconds! seconds
 echo Video bitrate: !video_kbps! kbps
 echo.
 
@@ -52,7 +54,7 @@ ffmpeg -i "%input%" ^
 "%folder%%name%_output.mp4"
 
 echo.
-echo Hoan tat:
+echo Finished:
 echo %folder%%name%_output.mp4
 
 pause
